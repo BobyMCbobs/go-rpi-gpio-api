@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gpio-api
+  namespace: gpio-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gpio-api
+  template:
+    metadata:
+      labels:
+        app: gpio-api
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - name: gpio-api
+        image: registry.gitlab.com/bobymcbobs/go-rpi-gpio-api:0.0.1
+        securityContext:
+          readOnlyRootFilesystem: true
+          runAsUser: 1000
+          runAsGroup: 997
+          privileged: true
+        #imagePullPolicy: Always
+        ports:
+          - containerPort: 8080
+        env:
+          - name: TZ
+            value: "Pacific/Auckland"
+          - name: APP_AUTH_SECRET
+            value: "123"
+        readinessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 2
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 1
+          periodSeconds: 20
+

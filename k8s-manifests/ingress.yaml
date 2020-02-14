@@ -1,0 +1,23 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: gpio-api
+  namespace: gpio-api
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    kubernetes.io/ingress.class: nginx
+    certmanager.k8s.io/cluster-issuer: "letsencrypt-prod"
+    certmanager.k8s.io/acme-challenge-type: http01
+spec:
+  tls:
+  - hosts:
+    - "mydomain.com"
+    secretName: letsencrypt-prod
+  rules:
+  - host: mydomain.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: gpio-api
+          servicePort: 8080
