@@ -22,6 +22,7 @@
 | `/api/pin/{number}/{state}` | Modify a pin's state (0 for low, 1 for high)  |
 
 ### Example request responses
+
 #### All pins
 ```json
 {
@@ -89,13 +90,14 @@ kubectl apply -f k8s-manifests/
 
 ## Environment variables
 
-| Name | Purpose | Defaults |
-| - | - | - |
-| `APP_PORT` | the port and interface which the app serves from | `:8080` |
-| `APP_PORT_TLS` | the port and interface which the app serves from | `:4433` |
-| `APP_USE_TLS` | run the app with TLS enabled | `false` |
-| `APP_TLS_PUBLIC_CERT` | the public certificate for the app to use | `server.crt` |
-| `APP_TLS_PRIVATE_CERT` | the private cert for the app to use | `server.tls` |
+| Name                   | Purpose                                          | Defaults     |
+| -                      | -                                                | -            |
+| `APP_AUTH_SECRET`      | require a value in Authorization bearer header   |              |
+| `APP_PORT`             | the port and interface which the app serves from | `:8080`      |
+| `APP_PORT_TLS`         | the port and interface which the app serves from | `:4433`      |
+| `APP_USE_TLS`          | run the app with TLS enabled                     | `false`      |
+| `APP_TLS_PUBLIC_CERT`  | the public certificate for the app to use        | `server.crt` |
+| `APP_TLS_PRIVATE_CERT` | the private cert for the app to use              | `server.tls` |
 
 ## License
 Copyright 2019 Caleb Woodbine.

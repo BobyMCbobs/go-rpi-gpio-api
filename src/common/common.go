@@ -55,6 +55,10 @@ func GetAppTLSprivateCert() (output string) {
 	return GetEnvOrDefault("APP_TLS_PRIVATE_CERT", "server.key")
 }
 
+func GetAuthSecretFromEnv() string {
+	return GetEnvOrDefault("APP_AUTH_SECRET", "")
+}
+
 func Logging(next http.Handler) http.Handler {
 	// log all requests
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -95,10 +99,6 @@ func HTTPuseMiddleware(handler http.HandlerFunc, middlewares ...func(http.Handle
 	}
 
 	return handler
-}
-
-func GetAuthSecretFromEnv() string {
-	return GetEnvOrDefault("APP_AUTH_SECRET", "")
 }
 
 func CheckAuth(r *http.Request, w http.ResponseWriter) (valid bool, err error) {
