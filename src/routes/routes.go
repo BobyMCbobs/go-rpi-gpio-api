@@ -77,7 +77,7 @@ func APIpostPin(w http.ResponseWriter, r *http.Request) {
 		Metadata: types.JSONResponseMetadata{
 			Response: responseMsg,
 		},
-		Spec: pin.State,
+		Spec: pin,
 	}
 	common.JSONResponse(r, w, responseCode, JSONresp)
 }
