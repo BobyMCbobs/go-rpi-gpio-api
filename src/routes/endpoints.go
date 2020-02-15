@@ -15,12 +15,12 @@ func GetEndpoints(endpointPrefix string) types.Endpoints {
 			HttpMethod:   http.MethodGet,
 		},
 		{
-			EndpointPath: endpointPrefix + "/pin/{pin}",
+			EndpointPath: endpointPrefix + "/pin/{pin:[0-9]+}",
 			HandlerFunc:  common.HTTPuseMiddleware(APIgetPin, HTTPvalidateAuth),
 			HttpMethod:   http.MethodGet,
 		},
 		{
-			EndpointPath: endpointPrefix + "/pin/{pin}/{state}",
+			EndpointPath: endpointPrefix + "/pin/{pin:[0-9]+}/{state:[0-9]+}",
 			HandlerFunc:  common.HTTPuseMiddleware(APIpostPin, HTTPvalidateAuth),
 			HttpMethod:   http.MethodPost,
 		},

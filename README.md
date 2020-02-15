@@ -82,6 +82,8 @@ docker run -it --rm --privileged -p 8080:8080 registry.gitlab.com/bobymcbobs/go-
 docker build -t registry.gitlab.com/bobymcbobs/go-rpi-gpio-api:latest .
 ```
 
+Note: since golang supports cross compilation, this container (Linux+arm) can be built from any supported platform!
+
 ## Deployment in k8s
 Make sure you update the values in the yaml files
 ```bash
@@ -98,6 +100,9 @@ kubectl apply -f k8s-manifests/
 | `APP_USE_TLS`          | run the app with TLS enabled                     | `false`      |
 | `APP_TLS_PUBLIC_CERT`  | the public certificate for the app to use        | `server.crt` |
 | `APP_TLS_PRIVATE_CERT` | the private cert for the app to use              | `server.tls` |
+
+## Notes
+Communication to GPIO pins requires either root privileges or preferably the user to be in the `gpio` group.
 
 ## License
 Copyright 2019 Caleb Woodbine.
