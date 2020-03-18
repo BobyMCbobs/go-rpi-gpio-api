@@ -3,8 +3,8 @@ package routes
 import (
 	"net/http"
 
-	"gitlab.com/bobymcbobs/go-rpi-gpio-api/src/types"
 	"gitlab.com/bobymcbobs/go-rpi-gpio-api/src/common"
+	"gitlab.com/bobymcbobs/go-rpi-gpio-api/src/types"
 )
 
 func GetEndpoints(endpointPrefix string) types.Endpoints {
@@ -20,7 +20,7 @@ func GetEndpoints(endpointPrefix string) types.Endpoints {
 			HttpMethod:   http.MethodGet,
 		},
 		{
-			EndpointPath: endpointPrefix + "/pin/{pin:[0-9]+}/{state:[0-9]+}",
+			EndpointPath: endpointPrefix + "/pin/{pin:[0-9]+}/{state:[0-1]+}",
 			HandlerFunc:  common.HTTPuseMiddleware(APIpostPin, HTTPvalidateAuth),
 			HttpMethod:   http.MethodPost,
 		},

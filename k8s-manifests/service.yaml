@@ -7,7 +7,7 @@ spec:
   ports:
   - port: 8080
     targetPort: 8080
-  externalIPs:
-    - 192.168.1.31
+  # externalIPs:
+  # - 192.168.1.10
   selector:
     app: gpio-api

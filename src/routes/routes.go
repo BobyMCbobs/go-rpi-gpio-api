@@ -6,6 +6,7 @@ package routes
 
 import (
 	"net/http"
+	"regexp"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -45,6 +46,17 @@ func APIgetPin(w http.ResponseWriter, r *http.Request) {
 	responseCode := 500
 	vars := mux.Vars(r)
 	pinIdstr := vars["pin"]
+	if CheckGPIOpinForGround(r) == true {
+		responseMsg = "Requested pin is a ground pin."
+		JSONresp := types.JSONMessageResponse{
+			Metadata: types.JSONResponseMetadata{
+				Response: responseMsg,
+			},
+			Spec: nil,
+		}
+		common.JSONResponse(r, w, responseCode, JSONresp)
+		return
+	}
 	pinId, err := strconv.Atoi(pinIdstr)
 	pinState, err1 := common.GetPin(pinId)
 	if err == nil && err1 == nil {
@@ -65,8 +77,30 @@ func APIpostPin(w http.ResponseWriter, r *http.Request) {
 	responseCode := 500
 	vars := mux.Vars(r)
 	pinIdstr := vars["pin"]
+	if CheckGPIOpinForGround(r) == true {
+		responseMsg = "Requested pin is a ground pin."
+		JSONresp := types.JSONMessageResponse{
+			Metadata: types.JSONResponseMetadata{
+				Response: responseMsg,
+			},
+			Spec: nil,
+		}
+		common.JSONResponse(r, w, responseCode, JSONresp)
+		return
+	}
 	pinId, err := strconv.Atoi(pinIdstr)
 	pinStateStr := vars["state"]
+	if CheckForValidState(r) == false {
+		responseMsg = "Invalid pin state."
+		JSONresp := types.JSONMessageResponse{
+			Metadata: types.JSONResponseMetadata{
+				Response: responseMsg,
+			},
+			Spec: nil,
+		}
+		common.JSONResponse(r, w, responseCode, JSONresp)
+		return
+	}
 	pinState, err := strconv.Atoi(pinStateStr)
 	pin, err := common.WritePin(pinId, pinState, 1)
 	if err == nil {
@@ -80,6 +114,14 @@ func APIpostPin(w http.ResponseWriter, r *http.Request) {
 		Spec: pin,
 	}
 	common.JSONResponse(r, w, responseCode, JSONresp)
+}
+
+func APIgroundPinEndpoint(w http.ResponseWriter, r *http.Request) {
+	common.JSONResponse(r, w, 400, types.JSONMessageResponse{
+		Metadata: types.JSONResponseMetadata{
+			Response: "This pin is a ground pin and is not able to be toggled",
+		},
+	})
 }
 
 func APIUnknownEndpoint(w http.ResponseWriter, r *http.Request) {
@@ -108,3 +150,16 @@ func HTTPvalidateAuth(h http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+func CheckGPIOpinForGround(r *http.Request) (matches bool) {
+	vars := mux.Vars(r)
+	pinIdstr := vars["pin"]
+	matches, _ = regexp.MatchString(`\b(([1-5])|(([7-8]))|(([0-1]|1[0-3]))|(([0-1]|1[5-9]))|(([2]|2[1-4]))|(([2]|2[6-9]))|(([2]|2[7-8]))|(([3]|3[1-3]))|(([3]|3[5-8]))|40)\b`, pinIdstr)
+	return !matches
+}
+
+func CheckForValidState(r *http.Request) (matches bool) {
+	vars := mux.Vars(r)
+	pinIdstr := vars["state"]
+	matches, _ = regexp.MatchString(`\b(0|1)\b`, pinIdstr)
+	return matches
+}

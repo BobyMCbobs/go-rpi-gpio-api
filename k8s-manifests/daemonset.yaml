@@ -1,10 +1,9 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
   name: gpio-api
   namespace: gpio-api
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: gpio-api
@@ -13,7 +12,23 @@ spec:
       labels:
         app: gpio-api
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: beta.kubernetes.io/os
+                    operator: In
+                    values:
+                      - linux
+                  - key: beta.kubernetes.io/arch
+                    operator: In
+                    values:
+                      - arm
       automountServiceAccountToken: false
+      tolerations:
+      - operator: Exists
+        effect: NoSchedule
       containers:
       - name: gpio-api
         image: registry.gitlab.com/bobymcbobs/go-rpi-gpio-api:0.0.1
@@ -28,8 +43,8 @@ spec:
         env:
           - name: TZ
             value: "Pacific/Auckland"
-          - name: APP_AUTH_SECRET
-            value: "123"
+            #          - name: APP_AUTH_SECRET
+            #            value: "123"
         readinessProbe:
           tcpSocket:
             port: 8080

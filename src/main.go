@@ -5,9 +5,9 @@
 package main
 
 import (
-	"os"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gorilla/mux"

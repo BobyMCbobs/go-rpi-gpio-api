@@ -28,8 +28,7 @@ type Endpoints []struct {
 
 type Pin struct {
 	Number int `json:"number"`
-	State int `json:"state"`
+	State  int `json:"state"`
 }
 
 type PinList []Pin
-
