@@ -24,14 +24,14 @@ spec:
                   - key: beta.kubernetes.io/arch
                     operator: In
                     values:
-                      - arm
+                      - arm64
       automountServiceAccountToken: false
       tolerations:
       - operator: Exists
         effect: NoSchedule
       containers:
       - name: gpio-api
-        image: registry.gitlab.com/bobymcbobs/go-rpi-gpio-api:0.0.1
+        image: registry.gitlab.com/bobymcbobs/go-rpi-gpio-api:latest
         securityContext:
           readOnlyRootFilesystem: true
           runAsUser: 1000
