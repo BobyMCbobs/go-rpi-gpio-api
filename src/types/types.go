@@ -13,6 +13,7 @@ type JSONResponseMetadata struct {
 	Version   string `json:"version"`
 	Timestamp int64  `json:"timestamp"`
 	Response  string `json:"response"`
+	Hostname  string `json:"hostname"`
 }
 
 type JSONMessageResponse struct {
@@ -32,3 +33,10 @@ type Pin struct {
 }
 
 type PinList []Pin
+
+type VersionInformation struct {
+	Version    string `json:"version"`
+	CommitHash string `json:"commitHash"`
+	Mode       string `json:"mode"`
+	Date       string `json:"date"`
+}

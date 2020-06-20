@@ -6,7 +6,6 @@ package routes
 
 import (
 	"net/http"
-	"regexp"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -14,7 +13,7 @@ import (
 	"gitlab.com/bobymcbobs/go-rpi-gpio-api/src/types"
 )
 
-func APIroot(w http.ResponseWriter, r *http.Request) {
+func GetRoot(w http.ResponseWriter, r *http.Request) {
 	// root of API
 	JSONresp := types.JSONMessageResponse{
 		Metadata: types.JSONResponseMetadata{
@@ -24,7 +23,28 @@ func APIroot(w http.ResponseWriter, r *http.Request) {
 	common.JSONResponse(r, w, 200, JSONresp)
 }
 
-func APIgetPins(w http.ResponseWriter, r *http.Request) {
+func GetVersion(w http.ResponseWriter, r *http.Request) {
+	// root of API
+	version := common.GetAppBuildVersion()
+	commitHash := common.GetAppBuildHash()
+	date := common.GetAppBuildDate()
+	mode := common.GetAppBuildMode()
+
+	JSONresp := types.JSONMessageResponse{
+		Metadata: types.JSONResponseMetadata{
+			Response: "Responded with version information",
+		},
+		Spec: types.VersionInformation{
+			Version: version,
+			CommitHash: commitHash,
+			Date: date,
+			Mode: mode,
+		},
+	}
+	common.JSONResponse(r, w, 200, JSONresp)
+}
+
+func GetPins(w http.ResponseWriter, r *http.Request) {
 	responseMsg := "Failed to fetch pins"
 	responseCode := 500
 	pinsList, err := common.ListPins()
@@ -41,12 +61,12 @@ func APIgetPins(w http.ResponseWriter, r *http.Request) {
 	common.JSONResponse(r, w, responseCode, JSONresp)
 }
 
-func APIgetPin(w http.ResponseWriter, r *http.Request) {
+func GetPin(w http.ResponseWriter, r *http.Request) {
 	responseMsg := "Failed to fetch pin state"
 	responseCode := 500
 	vars := mux.Vars(r)
 	pinIdstr := vars["pin"]
-	if CheckGPIOpinForGround(r) == true {
+	if common.CheckGPIOpinForGround(r) == true {
 		responseMsg = "Requested pin is a ground pin."
 		JSONresp := types.JSONMessageResponse{
 			Metadata: types.JSONResponseMetadata{
@@ -72,12 +92,12 @@ func APIgetPin(w http.ResponseWriter, r *http.Request) {
 	common.JSONResponse(r, w, responseCode, JSONresp)
 }
 
-func APIpostPin(w http.ResponseWriter, r *http.Request) {
+func PostPin(w http.ResponseWriter, r *http.Request) {
 	responseMsg := "Failed to update pin state"
 	responseCode := 500
 	vars := mux.Vars(r)
 	pinIdstr := vars["pin"]
-	if CheckGPIOpinForGround(r) == true {
+	if common.CheckGPIOpinForGround(r) == true {
 		responseMsg = "Requested pin is a ground pin."
 		JSONresp := types.JSONMessageResponse{
 			Metadata: types.JSONResponseMetadata{
@@ -90,7 +110,7 @@ func APIpostPin(w http.ResponseWriter, r *http.Request) {
 	}
 	pinId, err := strconv.Atoi(pinIdstr)
 	pinStateStr := vars["state"]
-	if CheckForValidState(r) == false {
+	if common.CheckForValidState(r) == false {
 		responseMsg = "Invalid pin state."
 		JSONresp := types.JSONMessageResponse{
 			Metadata: types.JSONResponseMetadata{
@@ -116,7 +136,7 @@ func APIpostPin(w http.ResponseWriter, r *http.Request) {
 	common.JSONResponse(r, w, responseCode, JSONresp)
 }
 
-func APIgroundPinEndpoint(w http.ResponseWriter, r *http.Request) {
+func GetGroundPinEndpoint(w http.ResponseWriter, r *http.Request) {
 	common.JSONResponse(r, w, 400, types.JSONMessageResponse{
 		Metadata: types.JSONResponseMetadata{
 			Response: "This pin is a ground pin and is not able to be toggled",
@@ -124,7 +144,7 @@ func APIgroundPinEndpoint(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func APIUnknownEndpoint(w http.ResponseWriter, r *http.Request) {
+func GetUnknownEndpoint(w http.ResponseWriter, r *http.Request) {
 	common.JSONResponse(r, w, 404, types.JSONMessageResponse{
 		Metadata: types.JSONResponseMetadata{
 			Response: "This endpoint doesn't seem to exist.",
@@ -148,18 +168,4 @@ func HTTPvalidateAuth(h http.HandlerFunc) http.HandlerFunc {
 			APIfailedAuth(w, r)
 		}
 	}
-}
-
-func CheckGPIOpinForGround(r *http.Request) (matches bool) {
-	vars := mux.Vars(r)
-	pinIdstr := vars["pin"]
-	matches, _ = regexp.MatchString(`\b(([1-5])|(([7-8]))|(([0-1]|1[0-3]))|(([0-1]|1[5-9]))|(([2]|2[1-4]))|(([2]|2[6-9]))|(([2]|2[7-8]))|(([3]|3[1-3]))|(([3]|3[5-8]))|40)\b`, pinIdstr)
-	return !matches
-}
-
-func CheckForValidState(r *http.Request) (matches bool) {
-	vars := mux.Vars(r)
-	pinIdstr := vars["state"]
-	matches, _ = regexp.MatchString(`\b(0|1)\b`, pinIdstr)
-	return matches
 }

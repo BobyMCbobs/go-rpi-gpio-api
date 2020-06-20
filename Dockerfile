@@ -3,7 +3,21 @@ WORKDIR /app
 COPY . .
 RUN addgroup -g 997 gpio
 RUN adduser -G gpio -D -H -h /app user
-RUN GOARCH=arm CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static" -s -w' -o gpio-api src/main.go
+ARG AppBuildVersion="0.0.0"
+ARG AppBuildHash="???"
+ARG AppBuildDate="???"
+ARG AppBuildMode="development"
+ARG GOARCH=arm
+RUN GOARCH="$GOARCH" CGO_ENABLED=0 GOOS=linux go build \
+  -a \
+  -installsuffix cgo \
+  -ldflags "-extldflags '-static' -s -w \
+    -X gitlab.com/bobymcbobs/go-rpi-gpio-api/src/common.AppBuildVersion=$AppBuildVersion \
+    -X gitlab.com/bobymcbobs/go-rpi-gpio-api/src/common.AppBuildHash=$AppBuildHash \
+    -X gitlab.com/bobymcbobs/go-rpi-gpio-api/src/common.AppBuildDate=$AppBuildDate \
+    -X gitlab.com/bobymcbobs/go-rpi-gpio-api/src/common.AppBuildMode=$AppBuildMode" \
+  -o gpio-api \
+  src/main.go
 
 FROM scratch
 WORKDIR /app

@@ -31,8 +31,8 @@ func handleWebserver() {
 		router.HandleFunc(endpoint.EndpointPath, endpoint.HandlerFunc).Methods(endpoint.HttpMethod, http.MethodOptions)
 	}
 
-	router.HandleFunc(apiEndpointPrefix+"/{.*}", routes.APIUnknownEndpoint)
-	router.HandleFunc(apiEndpointPrefix, routes.APIroot)
+	router.HandleFunc(apiEndpointPrefix+"/{.*}", routes.GetUnknownEndpoint)
+	router.HandleFunc(apiEndpointPrefix, routes.GetRoot)
 
 	router.Use(common.Logging)
 

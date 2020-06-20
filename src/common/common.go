@@ -12,15 +12,48 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"regexp"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/stianeikeland/go-rpio"
 	"gitlab.com/bobymcbobs/go-rpi-gpio-api/src/types"
 )
 
-const (
-	APP_VERSION = "0.0.1"
+var (
+	AppBuildVersion = "0.0.0"
+	AppBuildHash = "???"
+	AppBuildDate = "???"
+	AppBuildMode = "development"
 )
+
+func GetHostname() (hostname string) {
+	return os.Getenv("HOSTNAME")
+}
+
+// GetAppBuildVersion ...
+// return the version of the current FlatTrack instance
+func GetAppBuildVersion() string {
+	return AppBuildVersion
+}
+
+// GetAppBuildHash ...
+// return the commit which the current FlatTrack binary was built from
+func GetAppBuildHash() string {
+	return AppBuildHash
+}
+
+// GetAppBuildDate ...
+// return the build date of FlatTrack
+func GetAppBuildDate() string {
+	return AppBuildDate
+}
+
+// GetAppBuildMode ...
+// return the mode that the app is built in
+func GetAppBuildMode() string {
+	return AppBuildMode
+}
 
 func GetEnvOrDefault(envName string, defaultValue string) (output string) {
 	output = os.Getenv(envName)
@@ -76,7 +109,8 @@ func JSONResponse(r *http.Request, w http.ResponseWriter, code int, output types
 	// simpilify sending a JSON response
 	output.Metadata.URL = r.RequestURI
 	output.Metadata.Timestamp = time.Now().Unix()
-	output.Metadata.Version = APP_VERSION
+	output.Metadata.Version = AppBuildVersion
+	output.Metadata.Hostname = GetHostname()
 	response, _ := json.Marshal(output)
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
@@ -201,4 +235,18 @@ func ListPins() (pinList types.PinList, err error) {
 		pinList = append(pinList, pinState)
 	}
 	return pinList, err
+}
+
+func CheckGPIOpinForGround(r *http.Request) (matches bool) {
+	vars := mux.Vars(r)
+	pinIdstr := vars["pin"]
+	matches, _ = regexp.MatchString(`\b(([1-5])|(([7-8]))|(([0-1]|1[0-3]))|(([0-1]|1[5-9]))|(([2]|2[1-4]))|(([2]|2[6-9]))|(([2]|2[7-8]))|(([3]|3[1-3]))|(([3]|3[5-8]))|40)\b`, pinIdstr)
+	return !matches
+}
+
+func CheckForValidState(r *http.Request) (matches bool) {
+	vars := mux.Vars(r)
+	pinIdstr := vars["state"]
+	matches, _ = regexp.MatchString(`\b(0|1)\b`, pinIdstr)
+	return matches
 }
