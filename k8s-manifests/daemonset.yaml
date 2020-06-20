@@ -4,6 +4,10 @@ metadata:
   name: gpio-api
   namespace: gpio-api
 spec:
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: gpio-api
@@ -37,7 +41,7 @@ spec:
           runAsUser: 1000
           runAsGroup: 997
           privileged: true
-        #imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         ports:
           - containerPort: 8080
         env:
@@ -55,4 +59,3 @@ spec:
             port: 8080
           initialDelaySeconds: 1
           periodSeconds: 20
-
