@@ -14,22 +14,22 @@ func GetEndpoints(endpointPrefix string) types.Endpoints {
 		{
 			EndpointPath: endpointPrefix + "/pin",
 			HandlerFunc:  common.HTTPuseMiddleware(GetPins, HTTPvalidateAuth),
-			HttpMethod:   http.MethodGet,
+			HTTPMethod:   http.MethodGet,
 		},
 		{
 			EndpointPath: endpointPrefix + "/pin/{pin:[0-9]+}",
 			HandlerFunc:  common.HTTPuseMiddleware(GetPin, HTTPvalidateAuth),
-			HttpMethod:   http.MethodGet,
+			HTTPMethod:   http.MethodGet,
 		},
 		{
 			EndpointPath: endpointPrefix + "/pin/{pin:[0-9]+}/{state:[0-1]+}",
 			HandlerFunc:  common.HTTPuseMiddleware(PostPin, HTTPvalidateAuth),
-			HttpMethod:   http.MethodPost,
+			HTTPMethod:   http.MethodPost,
 		},
 		{
 			EndpointPath: endpointPrefix + "/version",
 			HandlerFunc:  common.HTTPuseMiddleware(GetVersion, HTTPvalidateAuth),
-			HttpMethod:   http.MethodGet,
+			HTTPMethod:   http.MethodGet,
 		},
 	}
 }
