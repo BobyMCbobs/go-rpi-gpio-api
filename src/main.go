@@ -54,6 +54,8 @@ func handleWebserver() {
 }
 
 func main() {
+	log.Printf("launching gpio-api (%v, %v, %v, %v)\n", common.GetAppBuildVersion(), common.GetAppBuildHash(), common.GetAppBuildDate(), common.GetAppBuildMode())
+
 	err := pin.OpenGPIOpins()
 	if err != nil {
 		log.Fatalln("[error] cannot talk to gpio pins")
