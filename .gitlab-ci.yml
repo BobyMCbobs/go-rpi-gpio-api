@@ -82,6 +82,25 @@ build-arm64-release:
   only:
     - tags
 
+build-arm32-release:
+  stage: build
+  image: docker:stable
+  services:
+    - docker:stable-dind
+  only:
+    - tags
+  variables:
+    ARCH: "arm32"
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+  before_script:
+    - *docker-build-pre-script
+  script:
+    - *docker-build-taggable-name
+    - *docker-pre-build-release-version
+    - *docker-build
+
 lint_backend:
   stage: lint
   image: golang:1.13.10-alpine3.11
