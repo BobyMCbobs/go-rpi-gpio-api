@@ -10,9 +10,12 @@ import (
 
 	"github.com/gorilla/mux"
 	"gitlab.com/bobymcbobs/go-rpi-gpio-api/src/common"
+	"gitlab.com/bobymcbobs/go-rpi-gpio-api/src/pin"
 	"gitlab.com/bobymcbobs/go-rpi-gpio-api/src/types"
 )
 
+// GetRoot ...
+// webserver root
 func GetRoot(w http.ResponseWriter, r *http.Request) {
 	// root of API
 	JSONresp := types.JSONMessageResponse{
@@ -23,6 +26,8 @@ func GetRoot(w http.ResponseWriter, r *http.Request) {
 	common.JSONResponse(r, w, 200, JSONresp)
 }
 
+// GetVersion ...
+// returns version information
 func GetVersion(w http.ResponseWriter, r *http.Request) {
 	// root of API
 	version := common.GetAppBuildVersion()
@@ -35,19 +40,21 @@ func GetVersion(w http.ResponseWriter, r *http.Request) {
 			Response: "Responded with version information",
 		},
 		Spec: types.VersionInformation{
-			Version: version,
+			Version:    version,
 			CommitHash: commitHash,
-			Date: date,
-			Mode: mode,
+			Date:       date,
+			Mode:       mode,
 		},
 	}
 	common.JSONResponse(r, w, 200, JSONresp)
 }
 
+// GetPins ...
+// returns all pins and states
 func GetPins(w http.ResponseWriter, r *http.Request) {
 	responseMsg := "Failed to fetch pins"
 	responseCode := 500
-	pinsList, err := common.ListPins()
+	pinsList, err := pin.ListPins()
 	if err == nil {
 		responseMsg = "Fetched all pins"
 		responseCode = 200
@@ -61,12 +68,14 @@ func GetPins(w http.ResponseWriter, r *http.Request) {
 	common.JSONResponse(r, w, responseCode, JSONresp)
 }
 
+// GetPin ...
+// returns a given pin and it's state
 func GetPin(w http.ResponseWriter, r *http.Request) {
 	responseMsg := "Failed to fetch pin state"
 	responseCode := 500
 	vars := mux.Vars(r)
 	pinIdstr := vars["pin"]
-	if common.CheckGPIOpinForGround(r) == true {
+	if pin.CheckGPIOpinForGround(r) == true {
 		responseMsg = "Requested pin is a ground pin."
 		JSONresp := types.JSONMessageResponse{
 			Metadata: types.JSONResponseMetadata{
@@ -77,8 +86,8 @@ func GetPin(w http.ResponseWriter, r *http.Request) {
 		common.JSONResponse(r, w, responseCode, JSONresp)
 		return
 	}
-	pinId, err := strconv.Atoi(pinIdstr)
-	pinState, err1 := common.GetPin(pinId)
+	pinID, err := strconv.Atoi(pinIdstr)
+	pinState, err1 := pin.GetPin(pinID)
 	if err == nil && err1 == nil {
 		responseMsg = "Fetched pin state"
 		responseCode = 200
@@ -92,12 +101,14 @@ func GetPin(w http.ResponseWriter, r *http.Request) {
 	common.JSONResponse(r, w, responseCode, JSONresp)
 }
 
+// PostPin ...
+// writes state to a given pin
 func PostPin(w http.ResponseWriter, r *http.Request) {
 	responseMsg := "Failed to update pin state"
 	responseCode := 500
 	vars := mux.Vars(r)
-	pinIdstr := vars["pin"]
-	if common.CheckGPIOpinForGround(r) == true {
+	pinIDstr := vars["pin"]
+	if pin.CheckGPIOpinForGround(r) == true {
 		responseMsg = "Requested pin is a ground pin."
 		JSONresp := types.JSONMessageResponse{
 			Metadata: types.JSONResponseMetadata{
@@ -108,9 +119,9 @@ func PostPin(w http.ResponseWriter, r *http.Request) {
 		common.JSONResponse(r, w, responseCode, JSONresp)
 		return
 	}
-	pinId, err := strconv.Atoi(pinIdstr)
+	pinID, err := strconv.Atoi(pinIDstr)
 	pinStateStr := vars["state"]
-	if common.CheckForValidState(r) == false {
+	if pin.CheckForValidState(r) == false {
 		responseMsg = "Invalid pin state."
 		JSONresp := types.JSONMessageResponse{
 			Metadata: types.JSONResponseMetadata{
@@ -122,7 +133,7 @@ func PostPin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	pinState, err := strconv.Atoi(pinStateStr)
-	pin, err := common.WritePin(pinId, pinState, 1)
+	pin, err := pin.WritePin(pinID, pinState, 1)
 	if err == nil {
 		responseMsg = "Updated pin state"
 		responseCode = 200
@@ -136,6 +147,8 @@ func PostPin(w http.ResponseWriter, r *http.Request) {
 	common.JSONResponse(r, w, responseCode, JSONresp)
 }
 
+// GetGroundPinEndpoint ...
+// response for if pin is a ground pin
 func GetGroundPinEndpoint(w http.ResponseWriter, r *http.Request) {
 	common.JSONResponse(r, w, 400, types.JSONMessageResponse{
 		Metadata: types.JSONResponseMetadata{
@@ -144,6 +157,8 @@ func GetGroundPinEndpoint(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// GetUnknownEndpoint ...
+// response for if endpoint doesn't exist
 func GetUnknownEndpoint(w http.ResponseWriter, r *http.Request) {
 	common.JSONResponse(r, w, 404, types.JSONMessageResponse{
 		Metadata: types.JSONResponseMetadata{
@@ -152,6 +167,8 @@ func GetUnknownEndpoint(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// APIfailedAuth ...
+// response if authorization doesn't work
 func APIfailedAuth(w http.ResponseWriter, r *http.Request) {
 	common.JSONResponse(r, w, 401, types.JSONMessageResponse{
 		Metadata: types.JSONResponseMetadata{
@@ -160,6 +177,8 @@ func APIfailedAuth(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// HTTPvalidateAuth ...
+// checks the auth for a request
 func HTTPvalidateAuth(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if valid, err := common.CheckAuth(r, w); valid == true && err == nil {

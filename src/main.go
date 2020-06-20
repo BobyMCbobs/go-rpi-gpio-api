@@ -13,6 +13,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/stianeikeland/go-rpio"
 	"gitlab.com/bobymcbobs/go-rpi-gpio-api/src/common"
+	"gitlab.com/bobymcbobs/go-rpi-gpio-api/src/pin"
 	"gitlab.com/bobymcbobs/go-rpi-gpio-api/src/routes"
 )
 
@@ -25,7 +26,7 @@ func handleWebserver() {
 	appTLSprivateCert := common.GetAppTLSprivateCert()
 
 	router := mux.NewRouter().StrictSlash(true)
-	apiEndpointPrefix := "/api"
+	apiEndpointPrefix := "/"
 
 	for _, endpoint := range routes.GetEndpoints(apiEndpointPrefix) {
 		router.HandleFunc(endpoint.EndpointPath, endpoint.HandlerFunc).Methods(endpoint.HttpMethod, http.MethodOptions)
@@ -53,7 +54,7 @@ func handleWebserver() {
 }
 
 func main() {
-	err := common.OpenGPIOpins()
+	err := pin.OpenGPIOpins()
 	if err != nil {
 		log.Fatalln("[error] cannot talk to gpio pins")
 		os.Exit(1)

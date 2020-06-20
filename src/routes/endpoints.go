@@ -7,6 +7,8 @@ import (
 	"gitlab.com/bobymcbobs/go-rpi-gpio-api/src/types"
 )
 
+// GetEndpoints ...
+// returns endpoints
 func GetEndpoints(endpointPrefix string) types.Endpoints {
 	return types.Endpoints{
 		{
