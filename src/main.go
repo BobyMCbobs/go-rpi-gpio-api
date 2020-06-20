@@ -29,7 +29,7 @@ func handleWebserver() {
 	apiEndpointPrefix := "/"
 
 	for _, endpoint := range routes.GetEndpoints(apiEndpointPrefix) {
-		router.HandleFunc(endpoint.EndpointPath, endpoint.HandlerFunc).Methods(endpoint.HttpMethod, http.MethodOptions)
+	      router.HandleFunc(endpoint.EndpointPath, endpoint.HandlerFunc).Methods(endpoint.HTTPMethod, http.MethodOptions)
 	}
 
 	router.HandleFunc(apiEndpointPrefix+"/{.*}", routes.GetUnknownEndpoint)
