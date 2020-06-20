@@ -6,7 +6,8 @@ metadata:
 spec:
   clusterIP: None
   ports:
-  - port: 8080
+  - name: http
+    port: 8080
     targetPort: 8080
   # externalIPs:
   # - 192.168.1.10
