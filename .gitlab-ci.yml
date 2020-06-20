@@ -1,13 +1,93 @@
 stages:
+  - lint
+  - test
   - build
 
-build:
-  stage: build
-  image:
-    name: gcr.io/kaniko-project/executor:debug-v0.13.0
-    entrypoint: [""]
-  script:
-    - if [ -n "$CI_COMMIT_TAG" ]; then KANIKO_EXTA_DESTINATION="--destination $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG"; fi
-    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    - /kaniko/executor --cache=false --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $CI_REGISTRY_IMAGE:latest $KANIKO_EXTA_DESTINATION
+cache:
+  key: shared-cache
+  paths:
+    - /go
 
+variables:
+  ARCH_DEFAULT: "arm64"
+  APP_BUILD_VERSION: 0.0.0
+  APP_BUILD_MODE: development
+
+.docker-build-pre-script: &docker-build-pre-script |
+  set -x
+  if ! docker info &>/dev/null; then
+    if [ -z "$DOCKER_HOST" -a "$KUBERNETES_PORT" ]; then
+      export DOCKER_HOST='tcp://localhost:2375'
+    fi
+  fi
+  mkdir -p $HOME/.docker/cli-plugins
+  wget -O $HOME/.docker/cli-plugins/docker-buildx https://github.com/docker/buildx/releases/download/v0.3.1/buildx-v0.3.1.linux-amd64
+  chmod +x $HOME/.docker/cli-plugins/docker-buildx 
+  docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  docker buildx create --use --name builder
+  docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  apk add git
+
+.docker-pre-build-release-version: &docker-pre-build-release-version |
+  export APP_BUILD_VERSION="$CI_COMMIT_TAG"
+  export APP_BUILD_MODE=production
+  export DOCKER_EXTRA_DESTINATION="-t $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG$PRINT_ARCH"
+
+.docker-build-taggable-name: &docker-build-taggable-name |
+  set -x
+  ARCH_TAGGABLE_NAME="$(echo $ARCH | sed -e 's,/,,g')"
+  if [[ ! "$ARCH" = "$ARCH_DEFAULT" ]]; then
+    PRINT_ARCH="-$ARCH_TAGGABLE_NAME"
+  fi
+
+.docker-build: &docker-build |
+  docker buildx build --build-arg AppBuildVersion="$APP_BUILD_VERSION" --build-arg AppBuildDate="$(date -u +%Y-%m-%d_%I:%M:%S%p)" --build-arg AppBuildHash="$(git rev-parse --short HEAD)" --build-arg AppBuildMode="$APP_BUILD_MODE" --platform linux/$ARCH -f $CI_PROJECT_DIR/Dockerfile --push -t $CI_REGISTRY_IMAGE:latest$PRINT_ARCH $DOCKER_EXTRA_DESTINATION $CI_PROJECT_DIR
+
+build-arm64:
+  stage: build
+  image: docker:stable
+  retry: 2
+  services:
+    - docker:stable-dind
+  variables:
+    ARCH: "arm64"
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+  before_script:
+    - *docker-build-pre-script
+  script:
+    - *docker-build-taggable-name
+    - *docker-build
+  except:
+    - tags
+
+build-arm64-release:
+  stage: build
+  image: docker:stable
+  retry: 2
+  services:
+    - docker:stable-dind
+  variables:
+    ARCH: "arm64"
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+  before_script:
+    - *docker-build-pre-script
+  script:
+    - *docker-build-taggable-name
+    - *docker-pre-build-release-version
+    - *docker-build
+  only:
+    - tags
+
+lint_backend:
+  stage: lint
+  image: golang:1.13.10-alpine3.11
+  allow_failure: true
+  before_script:
+    - apk add git gcc
+    - go get -u golang.org/x/lint/golint
+  script:
+    - golint -set_exit_status src/backend/...
