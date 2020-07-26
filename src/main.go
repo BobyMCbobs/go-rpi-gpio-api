@@ -26,7 +26,7 @@ func handleWebserver() {
 	appTLSprivateCert := common.GetAppTLSprivateCert()
 
 	router := mux.NewRouter().StrictSlash(true)
-	apiEndpointPrefix := "/"
+	apiEndpointPrefix := ""
 
 	for _, endpoint := range routes.GetEndpoints(apiEndpointPrefix) {
 	      router.HandleFunc(endpoint.EndpointPath, endpoint.HandlerFunc).Methods(endpoint.HTTPMethod, http.MethodOptions)
