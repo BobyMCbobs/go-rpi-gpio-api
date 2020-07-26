@@ -35,7 +35,7 @@ spec:
         effect: NoSchedule
       containers:
       - name: gpio-api
-        image: registry.gitlab.com/bobymcbobs/go-rpi-gpio-api:latest
+        image: registry.gitlab.com/bobymcbobs/go-rpi-gpio-api:1.0.0
         securityContext:
           readOnlyRootFilesystem: true
           runAsUser: 1000
@@ -59,3 +59,23 @@ spec:
             port: 8080
           initialDelaySeconds: 1
           periodSeconds: 20
+      initContainers:
+        - name: fix-gpiomem-permissions
+          image: alpine:3.12
+          securityContext:
+            privileged: true
+          env:
+            - name: GPIO_GROUP
+              value: "997"
+          command:
+            - /bin/sh
+            - -x
+            - -c
+            - "chown root.$GPIO_GROUP /host/dev/gpiomem && chmod 0660 /host/dev/gpiomem; ls -alh /host/dev/gpiomem"
+          volumeMounts:
+          - name: host-root
+            mountPath: /host
+      volumes:
+        - name: host-root
+          hostPath:
+            path: /
