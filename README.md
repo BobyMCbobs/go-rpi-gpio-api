@@ -103,8 +103,9 @@ kubectl apply -f k8s-manifests/
 
 ## Notes
 Communication to GPIO pins requires either root privileges or preferably the user to be in the `gpio` group.
+When deploying in Kubernetes, an init container automatically sets the correct privileges for accessing the GPIO pins.
 
-To make sure that GPIO access is configured correctly, run:
+To manually configure GPIO access, on each Raspberry Pi node:
 ```sh
 addgroup --gid 997 gpio
 chown root.gpio /dev/gpiomem
@@ -112,6 +113,6 @@ chmod g+rw /dev/gpiomem
 ```
 
 ## License
-Copyright 2019 Caleb Woodbine.
+Copyright 2019-2020 Caleb Woodbine.
 This project is licensed under the [GPL-3.0](http://www.gnu.org/licenses/gpl-3.0.html) and is [Free Software](https://www.gnu.org/philosophy/free-sw.en.html).
 This program comes with absolutely no warranty.
